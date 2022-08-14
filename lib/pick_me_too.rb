@@ -46,7 +46,7 @@ class PickMeToo
       balanced_binary_tree = bifurcate(frequencies.dup)
       probability_tree = probabilities(frequencies, balanced_binary_tree)
       # compile everything into a nested ternary expression
-      @picker = eval "->(p) { #{ternerize(probability_tree)} }"
+      @picker = eval "->(p) { #{ternarize(probability_tree)} }"
     end
   end
 
@@ -73,10 +73,10 @@ class PickMeToo
   end
 
   # reduce the probability tree to nested ternary expressions
-  def ternerize(ptree)
+  def ternarize(ptree)
     p, left, right = ptree.values_at :p, :left, :right
-    left = left.is_a?(Numeric) ? left : ternerize(left)
-    right = right.is_a?(Numeric) ? right : ternerize(right)
+    left = left.is_a?(Numeric) ? left : ternarize(left)
+    right = right.is_a?(Numeric) ? right : ternarize(right)
     "(p > #{p} ? #{right} : #{left})"
   end
 
