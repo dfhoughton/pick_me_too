@@ -47,7 +47,7 @@ of frequencies:
 
 What you need is something that will randomly pick these things for you with the frequencies you specify.
 
-One way to do this would be to make an array, filling it with the items according to the frequencies specified
+One way to do this would be to make an array, fill it with the items according to the frequencies specified,
 and then pick randomly from the array:
 
 ```ruby
