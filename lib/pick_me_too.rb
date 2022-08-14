@@ -17,7 +17,7 @@
 # probability the next thing you pick is also a cat, and the urn will never be picked empty. (And of course
 # this is all a metaphor.)
 class PickMeToo
-  VERSION = '0.0.0'
+  VERSION = '1.0.0'
 
   class Error < StandardError; end
 
