@@ -2,7 +2,7 @@
 
 ##
 # An "urn" from which you can pick things with specified frequencies.
-# 
+#
 #   require 'pick_me_too'
 #
 #   wandering_monsters = PickMeToo.new({goblin: 10, bugbear: 2, orc: 5, spider: 3, troll: 1})
@@ -17,14 +17,14 @@
 # probability the next thing you pick is also a cat, and the urn will never be picked empty. (And of course
 # this is all a metaphor.)
 class PickMeToo
-  VERSION = '1.0.0'
+  VERSION = '1.1.0'
 
   class Error < StandardError; end
 
   ##
   # "Fill" the urn.
   #
-  # The required frequencies parameter must be something that is effectivly a list of pairs:
+  # The required frequencies parameter must be something that is effectively a list of pairs:
   # things to pick paired with their frequency. The "frequency" is just any positive number.
   #
   # The optional rnd parameter is a Proc that when called returns a number, ideally in the interval
@@ -54,6 +54,19 @@ class PickMeToo
   # Pick an item from the urn.
   def pick
     @objects[@picker.call(@rnd.call)]
+  end
+
+  ##
+  # Replace the random number generator.
+  #
+  # If the optional argument is omitted, the replacement is just
+  #
+  #   -> { rand }
+  #
+  # This is useful if you want to switch from a seeded random number generator
+  # to something more truly random.
+  def randomize!(rnd = -> { rand })
+    @rnd = rnd
   end
 
   private

@@ -72,7 +72,7 @@ This is the "[urn](https://en.wikipedia.org/wiki/Urn_problem)" containing the it
 
 "Fill" the urn.
 
-The required `frequencies` parameter must be something that is effectivly a list of pairs:
+The required `frequencies` parameter must be something that is effectively a list of pairs:
 things to pick paired with their frequency. The "frequency" is just any positive number.
 
 The optional `rnd` parameter is a `Proc` that when called returns a number, ideally in the interval
@@ -87,6 +87,18 @@ This constructor method will raise a `PickMeToo::Error` if
 ## `PickMeToo#pick()`
 
 Draw an item from the urn.
+
+## `PickMeToo#randomize!([rnd])`
+
+Replace the random number generator.
+If the optional argument is omitted, the replacement is just
+
+```ruby
+-> { rand }
+```
+
+This is useful if you want to switch from a seeded random number generator
+to something more truly random.
 
 # Installation
 

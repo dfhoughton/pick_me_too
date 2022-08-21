@@ -19,7 +19,7 @@ class BasicTest < Minitest::Test
 
   def test_hash
     rnd = Random.new 1
-    picker = PickMeToo.new({'cat' => 2, 'dog' => 1}, -> { rnd.rand })
+    picker = PickMeToo.new({ 'cat' => 2, 'dog' => 1 }, -> { rnd.rand })
     counter = Hash.new(0)
     3000.times { counter[picker.pick] += 1 }
     assert_equal 2, (counter['cat'] / 1000.0).round, 'right number of cats'
@@ -69,5 +69,20 @@ class BasicTest < Minitest::Test
                   'all frequencies must be two-member arrays the second member of which is Numeric') do
       PickMeToo.new([['foo', nil]])
     end
+  end
+
+  def test_randomize
+    rnd1 = Random.new 1
+    rnd2 = Random.new 1
+    rnd3 = Random.new 2
+    picker1 = PickMeToo.new({ foo: 1, bar: 2, baz: 3 }, -> { rnd1.rand })
+    picker2 = PickMeToo.new({ foo: 1, bar: 2, baz: 3 }, -> { rnd2.rand })
+    ar1 = Array.new(100) { picker1.pick }
+    ar2 = Array.new(100) { picker2.pick }
+    assert_equal ar1, ar2, 'with the same seeds we get the same sequences'
+    picker2.randomize! -> { rnd3.rand }
+    ar1 = Array.new(100) { picker1.pick }
+    ar2 = Array.new(100) { picker2.pick }
+    refute_equal ar1, ar2, 'if we randomize a picker, we get a new sequence'
   end
 end
