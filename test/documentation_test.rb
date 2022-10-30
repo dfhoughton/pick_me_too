@@ -21,6 +21,6 @@ class BasicTest < Minitest::Test
     picker = PickMeToo.new({ foo: 1, bar: 2, baz: 0.5 }, -> { rng.rand })
     counter = Hash.new 0
     32.times { counter[picker.pick] += 1 }
-    assert_equal({ foo: 13, bar: 12, baz: 7 }, counter)
+    assert_equal({:bar=>15, :foo=>12, :baz=>5}, counter)
   end
 end

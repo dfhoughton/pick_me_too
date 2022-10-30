@@ -29,7 +29,7 @@ picker = PickMeToo.new({foo: 1, bar: 2, baz: 0.5}, -> { rng.rand })
 counter = Hash.new 0
 32.times { counter[picker.pick] += 1 }
 counter
-# => {:foo=>13, :bar=>12, :baz=>7}
+# => {:bar=>15, :foo=>12, :baz=>5}
 
 # you don't need to provide your own random number sequence
 picker = PickMeToo({a: 1, b: 2, c: 3})
