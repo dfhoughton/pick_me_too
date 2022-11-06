@@ -18,7 +18,7 @@ picker = PickMeToo.new([["prevention", 1], ["cure", 16]], -> { rng.rand })
 counter = Hash.new 0
 32.times { counter[picker.pick] += 1 }
 counter
-# => {"cure"=>29, "prevention"=>3}
+# => {"cure"=>31, "prevention"=>1}
 
 # you can also use a hash to map items to frequencies
 # frequencies don't need to be whole numbers
@@ -29,7 +29,7 @@ picker = PickMeToo.new({foo: 1, bar: 2, baz: 0.5}, -> { rng.rand })
 counter = Hash.new 0
 32.times { counter[picker.pick] += 1 }
 counter
-# => {:bar=>15, :foo=>12, :baz=>5}
+# => {:bar=>22, :foo=>5, :baz=>5}
 
 # you don't need to provide your own random number sequence
 picker = PickMeToo({a: 1, b: 2, c: 3})

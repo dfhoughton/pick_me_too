@@ -10,14 +10,13 @@
 #   # => [:goblin, :orc, :bugbear, :orc, :goblin, :bugbear, :goblin, :goblin, :orc, :goblin]
 #
 #   irrational = PickMeToo.new({e: Math::E, pi: Math::PI})
-#   to.times.map { irrational.pick }
+#   10.times.map { irrational.pick }
 #   # => [:e, :e, :e, :pi, :e, :e, :e, :pi, :pi, :e]
 #
 # Items once picked are "placed back in the urn", so if you pick a cat this doesn't reduce the
-# probability the next thing you pick is also a cat, and the urn will never be picked empty. (And of course
-# this is all a metaphor.)
+# probability the next thing you pick is also a cat, and the urn will never be picked empty.
 class PickMeToo
-  VERSION = '1.1.1'
+  VERSION = '1.1.2'
 
   class Error < StandardError; end
 
@@ -42,9 +41,9 @@ class PickMeToo
     if @objects.length == 1
       @picker = ->(_p) { 0 }
     else
-      root = balanced_binary_tree(frequencies)
+      root = optimize(frequencies)
       # compile everything into a nested ternary expression
-      @picker = eval "->(p) { #{ternarize(root, 0)} }"
+      @picker = eval "->(p) { #{ternarize(root)} }"
     end
   end
 
@@ -80,49 +79,74 @@ class PickMeToo
     raise Error, "the following have non-positive frequencies: #{bad.inspect}" if bad.any?
 
     total = good.map(&:last).sum.to_f
-    # sort by size of probability interval -- optimization step
+    # sort by size of probability interval
+    # in general we will want to consider wide intervals before narrow ones
     good.sort_by(&:last).reverse.map { |o, n| [o, n / total] }
   end
 
-  # treat the frequencies as a heap
-  # returns the root of this binary tree
-  def balanced_binary_tree(frequencies)
+  # optimize the order of threshold comparisons to map a random number to an index in the array
+  # of choices
+  def optimize(frequencies)
     frequencies = frequencies.each_with_index.map { |(*, i), idx| { interval: i, index: idx } }
-    frequencies.each do |obj|
-      left_idx = obj[:index] * 2 + 1
-      next unless (left = frequencies[left_idx])
-
-      obj[:left] = left
-      right_idx = left_idx + 1
-      if (right = frequencies[right_idx])
-        obj[:right] = right
-      end
-    end
-    frequencies[0]
+    root = build_branch(frequencies)
+    add_thresholds(root, 0)
+    root
   end
 
-  # what is the sum of all intervals under this node?
-  def sum(obj)
-    return 0 unless obj
+  def add_thresholds(node, acc)
+    # acc represents the accumulated probability mass known to be before anything in the tree
+    # currently under consideration
+    if (l = node[:left])
+      add_thresholds(l, acc)
+      node[:left_threshold] = acc += l[:sum]
+    end
+    if (r = node[:right])
+      acc = node[:right_threshold] = acc + node[:interval]
+      add_thresholds(r, acc)
+    end
+  end
 
-    obj[:sum] ||= begin
-      left = sum(obj[:left])
-      right = sum(obj[:right])
-      left + right + obj[:interval]
+  def build_branch(frequencies)
+    sum = frequencies.sum { |o| o[:interval] }
+    node = frequencies.shift
+    if frequencies.any?
+      if node[:interval] * 3 >= sum
+        # a binary search would be wasteful because the frequencies are so skewed
+        node[:right] = build_branch(frequencies)
+      else
+        # build a binary-branching search tree
+        left, right = frequencies.each_with_index.partition { |*, i| left_branch?(i + 1) }
+        node[:left] = build_branch(left.map(&:first))
+        node[:right] = build_branch(right.map(&:first)) if right.any?
+      end
+    end
+    node[:sum] = sum
+    node
+  end
+
+  # this implements the heap rule for matching a node to its parent
+  # our binary-branching trees are heaps with wider intervals towards the root
+  def left_branch?(index)
+    if index == 1
+      true
+    elsif index < 1
+      false
+    else
+      left_branch?((index - 1) / 2)
     end
   end
 
   # reduce the probability tree to nested ternary expressions
-  def ternarize(node, acc)
-    left = sum(node[:left])
-    return node[:index] if left == 0 # this is a leaf
-
-    right = if (r = node[:right])
-              increment = acc + left + node[:interval]
-              "(p < #{increment} ? #{node[:index]} : #{ternarize(r, increment)})"
-            else
-              node[:index]
+  def ternarize(node)
+    l, r = node.values_at :left, :right
+    if l && r
+      "(p > #{node[:left_threshold]} ? (p > #{node[:right_threshold]} ? #{ternarize(r)} : #{node[:index]}) : #{ternarize(l)})"
+    elsif l
+      "(p > #{node[:left_threshold]} ? #{node[:index]} : #{ternarize(l)})"
+    elsif r
+      "(p > #{node[:right_threshold]} ? #{ternarize(r)} : #{node[:index]})"
+    else
+      node[:index]
     end
-    "(p < #{left + acc} ? #{ternarize(node[:left], acc)} : #{right})"
   end
 end

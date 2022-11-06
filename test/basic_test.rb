@@ -71,6 +71,30 @@ class BasicTest < Minitest::Test
     end
   end
 
+  # force unary branching
+  def test_big
+    rnd = Random.new 1
+    frequencies = %w[a b c d e f g h].each_with_index.map { |k, i| [k, 2**i] }
+    picker = PickMeToo.new(frequencies, -> { rnd.rand })
+    counter = Hash.new(0)
+    (frequencies.map(&:last).sum * 6000).times { counter[picker.pick] += 1 }
+    frequencies.each do |key, n|
+      assert_equal n, (counter[key] / 6000.0).round, "right number of #{key}"
+    end
+  end
+
+  # force binary branching
+  def test_small
+    rnd = Random.new 1
+    frequencies = %w[a b c d e f g h].each_with_index.map { |k, _i| [k, 1] }
+    picker = PickMeToo.new(frequencies, -> { rnd.rand })
+    counter = Hash.new(0)
+    (frequencies.map(&:last).sum * 6000).times { counter[picker.pick] += 1 }
+    frequencies.each do |key, n|
+      assert_equal n, (counter[key] / 6000.0).round, "right number of #{key}"
+    end
+  end
+
   def test_randomize
     rnd1 = Random.new 1
     rnd2 = Random.new 1
